@@ -28,8 +28,8 @@ def predict():
             img_base64 = Image.fromarray(img)
             img_byte_arr = io.BytesIO()
             img_base64.save(img_byte_arr, format='JPEG')
-            imgg = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
-    return render_template('index.html', img_data=imgg)
+            imggg = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
+    return render_template('index.html', img_data=imggg)
     
 
 
