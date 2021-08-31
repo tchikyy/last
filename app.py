@@ -12,10 +12,6 @@ from flask import Flask, render_template, request, redirect
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/uploads/'
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 @app.route("/", methods=["GET", "POST"])
 def predict():
     if request.method == "POST":
@@ -24,20 +20,23 @@ def predict():
         file = request.files["file"]
         if not file:
             return
-            
-        filename = file.filename
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        img_bytes = file.read()
+        imgg = Image.open(io.BytesIO(img_bytes))
+        results = model(imgg, size=640)
         
+        for img in results.imgs:
+            img_base64 = Image.fromarray(img)
+            img_byte_arr = io.BytesIO()
+            img_base64.save(img_byte_arr, format='JPEG')
+            imgg = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
     return render_template('index.html', filename=filename)
     
- 
-@app.route('/display/<filename>')
-def display_image(filename):
-    #print('display_image filename: ' + filename)
-    return redirect(url_for('static', filename='uploads/' + filename), code=301)
 
-    return render_template("index.html")
 
 
 if __name__ == "__main__":
+    model = torch.hub.load(
+        "ultralytics/yolov5", "yolov5s", pretrained=True, force_reload=True
+    ).autoshape()
+    model.eval()
     app.run(debug=True)  # debug=True causes Restarting with stat
